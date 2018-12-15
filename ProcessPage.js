@@ -85,7 +85,8 @@ function getCykleAndLockProperties(onSuccess, onError) {
 }
  
 /***************************************************************************************************************
- * Getting overview of available cycles and locks in Oslo Bysykkel ***************************************************************************************************************/
+ * Getting overview of available cycles and locks in Oslo Bysykkel 
+ ***************************************************************************************************************/
 function getAvailableCyclesAndLocks() {
     try {
            getCykleAndLockProperties(onGetAvailableSuccess, onGetAvailableError);
@@ -125,7 +126,7 @@ function onGetAvailableSuccess(data) {
     $(("#locks").html(unsortedListLocks);
 }
 function onGetAvailableError(data) {
-    var unsortedListCycles = "<ul class=\"cyclecontent\"><li>Fant ingen stasjon.</li><ul>";
+    var unsortedListCycles = "<ul class=\"cyclecontent\"><li>Fant ingen sykkel.</li><ul>";
     var unsortedListLocks = "<ul class=\"lockcontent\"><li>Fant ingen låser.</li><ul>";
     $(("#cycles").html(unsortedListCycles);
     $(("#locks").html(unsortedListLocks);
