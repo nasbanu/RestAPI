@@ -3,7 +3,7 @@ Jeg har brukt enkelt javascript til å koble opp mot API og opprettet en oversik
 
 Har vedlagt inn index.html og ProcessPage.js fil
 
-For å forstår enkelt, jeg har lagt inn javascript inn i index.html fil.
+For å forstår enklet, lagt inn javascript rett inn i index.html fil.
 
 Last ned index.html fil, høyre klikk og velg internet explorer og klikk Tillatt blokkert Info. Da viser en tabell med stasjon, tilgengelig låser og sykler.
 
