@@ -1,133 +1,109 @@
 $(document).ready(function () {
-    try {
-        if ($(("#allStation").length > 0) {
-            getAllStations();           
-        }       
-        if ($(("#availableCyclesLocks").length > 0) {
-            getAvailableCyclesAndLocks();           
-        }           
-    }
-    catch (ex) {
-        console.log(ex.message);
-    }
+	getAllStationAndBikes();
 });
- 
 /*****************************************************************************************************
  * A call to the REST-API getting all cycle stations
  *****************************************************************************************************/
-function getStationProperties(onSuccess, onError) {
-    rootUrl =  https://oslobysykkel.no
-    var searchUrl = _spPageContextInfo.webAbsoluteUrl + "/api/v1/stations";
-    var executor = new SP.RequestExecutor(rootUrl);
-    executor.executeAsync(
-        {
-            url: searchUrl,
-            method: "GET",
-            headers: { "Accept": "application/json; odata=verbose" },
-            success: onSuccess,
-            error: onError 
+function getStationInformation(data, callback) {
+    $.ajax({
+        url: "https://oslobysykkel.no/api/v1/stations",    
+		headers: {"Client-Identifier" : "fd551dae28817b72217ed589d942ecc1"},
+        type: 'GET',
+        success: function(data) {
+            console.dir(data);
+            callback(data);
         }
-    );
+    });
 }
- 
-/***************************************************************************************************************
- * Getting overview of all stations
- ***************************************************************************************************************/
-function getAllStations() {
-    try {
-           getStationProperties(onGetAllStationsSuccess, onGetAllStationsError);
-    }
-    catch (ex) {
-        var unsortedList = "<ul class=\"webpartcontent\"><li>Kunne ikke hente sykkelstasjon " + ex.message + "</li></ul>";
-        $(("#allStation").html(unsortedList);
-    }
-}
- 
-function onGetAllStationsSuccess(data) {
-    var resultsAsJson = JSON.parse(data.body);
-    var stationProperties = resultsAsJson.d.stations.results;
- 
-    var unsortedList = null;
-    if (stationProperties.length == 0) {
-        unsortedList = "<ul class=\"webpartcontent\"><li>Det finner ingen stasjon</li><ul>";
-    }
-    else {
-        unsortedList = "<ul class=\"webpartcontent\">";
-        $(.each(stationProperties, function (index, result) {         
-            unsortedList += "<li>" + result.title + "</li>";
-        });         
-        unsortedList += "</ul>";
-    }
-    // Inject HTML into page
-    $(("#allStation").html(unsortedList);
-}
-function onGetAllStationsError(data) {
-    var unsortedList = "<ul class=\"webpartcontent\"><li>Fant ingen sykkelstasjon.</li><ul>";
-    $(("#allStation").html(unsortedList);
-}
- 
+
 /*****************************************************************************************************
  * A call to the REST-API getting available cycles and locks from cycle stations
  *****************************************************************************************************/
-function getCykleAndLockProperties(onSuccess, onError) {
-    rootUrl =  https://oslobysykkel.no
-    var searchUrl = _spPageContextInfo.webAbsoluteUrl + "/api/v1/stations/availability"
-    var executor = new SP.RequestExecutor(rootUrl);
-    executor.executeAsync(
-        {
-            url: searchUrl,
-            method: "GET",
-            headers: { "Accept": "application/json; odata=verbose" },
-            success: onSuccess,
-            error: onError 
+ 
+function getAvailableBikesAndLocks(data, callback) {
+    $.ajax({
+        url: "https://oslobysykkel.no/api/v1/stations/availability",    
+		headers: {"Client-Identifier" : "fd551dae28817b72217ed589d942ecc1"},
+        type: 'GET',
+        success: function(data) {
+            console.dir(data);
+            callback(data);
         }
-    );
+    });
 }
- 
+
 /***************************************************************************************************************
- * Getting overview of available cycles and locks in Oslo Bysykkel 
+ * Getting overview of stations, availabile bikes and locks
  ***************************************************************************************************************/
-function getAvailableCyclesAndLocks() {
-    try {
-           getCykleAndLockProperties(onGetAvailableSuccess, onGetAvailableError);
-    }
-    catch (ex) {
-        var unsortedListCycles = "<ul class=\"cyclecontent\"><li>Kunne ikke hente tilgjengelig sykler " + ex.message + "</li></ul>";
-        var unsortedListLocks = "<ul class=\"lockcontent\"><li>Kunne ikke hente tilgjengelig låser " + ex.message + "</li></ul>";
-         
-        $(("#cycles").html(unsortedListCycles);
-        $(("#locks").html(unsortedListLocks);       
-    }
-}
  
-function onGetAvailableSuccess(data) {
-    var resultsAsJson = JSON.parse(data.body);
-    var availableProperties = resultsAsJson.d.stations.results;
- 
-    var unsortedListCycles = null;
-    var unsortedListLocks = null;
-    if (availableProperties.length == 0) {
-        unsortedListCycles = "<ul class=\"cyclecontent\"><li>Det finner ingen sykler</li><ul>";
-        unsortedListLocks = "<ul class=\"lockcontent\"><li>Det finner ingen låser</li><ul>";
-    }
-     
-    else {
-        unsortedListCycles = "<ul class=\"cyclecontent\">";
-        unsortedListLocks = "<ul class=\"lockcontent\">";
-        $(.each(stationProperties, function (index, result) {         
-            unsortedListCycles += "<li>" + result.availability[bikes] + "</li>";
-            unsortedListLocks += "<li>" + result.availability[locks] + "</li>";
-        });         
-        unsortedListCycles += "</ul>";
-        unsortedListLocks += "</ul>";
-    }
-    // Inject HTML into page
-    $(("#cycles").html(unsortedListCycles);
-    $(("#locks").html(unsortedListLocks);
+function getAllStationAndBikes(stationData) {
+    getStationInformation(stationData, function (getStationInformationResult) { 
+	var stationInfo = getStationInformationResult.stations;
+		
+	getAvailableBikesAndLocks(stationData, function (getAvailableBikesAndLocksResults) { 
+	var availableInfo = getAvailableBikesAndLocksResults.stations;
+	
+	var mergeBothTable = concatTable(availableInfo, stationInfo, "id", "id", function (stationInfo, availableBikesAndLocks) {
+    return {               
+                Stasjon: stationInfo.title,                				             
+                TilgjengeligLåser: availableBikesAndLocks.availability.locks,
+				TilgjengeligSykler: availableBikesAndLocks.availability.bikes
+            };
+        });
+
+        var addToHTML = document.getElementById("getAllInformation");
+        displayTable(mergeBothTable, addToHTML);
+});
+});
 }
-function onGetAvailableError(data) {
-    var unsortedListCycles = "<ul class=\"cyclecontent\"><li>Fant ingen sykkel.</li><ul>";
-    var unsortedListLocks = "<ul class=\"lockcontent\"><li>Fant ingen låser.</li><ul>";
-    $(("#cycles").html(unsortedListCycles);
-    $(("#locks").html(unsortedListLocks);
+	
+	
+function concatTable(availabilityDB, allDB, availabilityDBRef, allDBRef, select) {
+    var l = availabilityDB.length,
+        m = allDB.length,
+        availableArr = [],
+        result = [];
+    for (var i = 0; i < l; i++) { 
+        var row = availabilityDB[i];
+        availableArr[row[availabilityDBRef]] = row; 
+    }
+    for (var j = 0; j < m; j++) { 
+        var y = allDB[j];
+        var x = availableArr[y[allDBRef]]; 
+        if (typeof x != 'undefined') {
+            result.push(select(y, x)); 
+        } else {
+            console.log("Not availabile");
+        }
+    }
+    return result;
+};
+
+
+function displayTable(inputarray, divContainer) {
+    var col = [];
+    for (var i = 0; i < inputarray.length; i++) {
+        for (var key in inputarray[i]) {
+            if (col.indexOf(key) === -1) {
+                col.push(key);
+            }
+        }
+    }
+    var table = document.createElement("table");
+    var tr = table.insertRow(-1);               
+    for (var i = 0; i < col.length; i++) {
+        var th = document.createElement("th");  
+        th.innerHTML = col[i];
+        tr.appendChild(th);
+    }
+    
+    for (var i = 0; i < inputarray.length; i++) {
+        tr = table.insertRow(-1);
+        for (var j = 0; j < col.length; j++) {
+            var tabCell = tr.insertCell(-1);
+            tabCell.innerHTML = inputarray[i][col[j]];
+        }
+    }
+    //divContainer.innerHTML = "";
+    divContainer.appendChild(table);
 }
